@@ -2,6 +2,7 @@ const express=require("express")
 const { User }=require("../models/User.model")
 const bcrypt = require('bcrypt')
 const jwt = require("jsonwebtoken")
+const { addToBlacklist } = require("../blacklist")
 require("dotenv").config()
 const userRouter=express.Router()
 
@@ -11,14 +12,14 @@ const tokenExpire=process.env.tokenExpiration
 
 
 userRouter.post('/register',async(req,res)=>{
-    const {username,email,password,role,profile:{name,profilepicture}}=req.body
+    const {username,email,password,role,profile:{name,profilepicture,gender}}=req.body
     try{
         const existingUser= await User.findOne({email})
         if(existingUser){
             return res.status(400).json({Message:"User alreadu exists!"})
         }
         const hashedPass=await bcrypt.hash(password,10);
-        const user=new User({username,email,password:hashedPass,roles:[role],profile:{name,profilepicture}})
+        const user=new User({username,email,password:hashedPass,roles:[role],profile:{name,profilepicture,gender}})
         await user.save()
         res.status(201).json({Message:"User Registerd Successfully!"})
 
@@ -52,6 +53,25 @@ userRouter.post('/login',async(req,res)=>{
         res.status(500).json({error:"Internal server error"})
     }
 })
+
+
+userRouter.post("/logout",async(req,res)=>{
+    try{
+        const token=req.headers.authorization
+        if(!token){
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+        addToBlacklist(token)
+        res.status(201).json({Message:"Logout Successful"})
+    }catch(err){
+        res.status(500).json({error:"Internal server error"})
+    }
+})
+
+
+module.exports={
+    userRouter
+}
 
 
 

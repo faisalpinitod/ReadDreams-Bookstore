@@ -1,10 +1,15 @@
 const jwt=require("jsonwebtoken")
 require("dotenv").config()
+const { isTokenBlacklisted } =rquire('../blacklist')
 
 const authenticate=(req,res,next)=>{
         const token=req.headers.authorization;
         if(!token){
             return res.status(401).json({message:"Authentication required!"})
+        }
+
+        if(isTokenBlacklisted(token)){
+            return res.status(401).json({error:"Invalid token"})
         }
 
         jwt.verify(token,process.env.jwt_Secret_key,(err,decoded)=>{
