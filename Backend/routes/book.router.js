@@ -24,3 +24,8 @@ bookRouter.get("/getbook/:id",async(req,res)=>{
         res.status(500).json({error:"Internal server error"})
     }
 })
+
+
+module.exports={
+    bookRouter
+}
